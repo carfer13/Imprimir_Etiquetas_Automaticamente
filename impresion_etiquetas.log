@@ -1,0 +1,4 @@
+ERROR:root:Error al imprimir los archivos PDF: [WinError 1155] No hay ninguna aplicación asociada con el archivo especificado para esta operación: 'C:\\Users\\Deval\\Downloads\\temp_etiquetas\\EtiquetaCEX0.pdf'
+ERROR:root:Error al imprimir los archivos PDF: [WinError 1155] No hay ninguna aplicación asociada con el archivo especificado para esta operación: 'C:\\Users\\Deval\\Downloads\\temp_etiquetas\\EtiquetaCEX0.pdf'
+ERROR:root:Error al imprimir los archivos PDF: [WinError 1155] No hay ninguna aplicación asociada con el archivo especificado para esta operación: 'C:\\Users\\Deval\\Downloads\\temp_etiquetas\\EtiquetaCEX0.pdf'
+ERROR:root:Error al imprimir los archivos PDF: Command '"C:\Users\Deval\AppData\Local\SumatraPDF\SumatraPDF.exe" -print-to "Brother MFC-L8390CD2 series" "C:\Users\Deval\Downloads\temp_etiquetas\EtiquetaCEX0.pdf"' returned non-zero exit status 1.
