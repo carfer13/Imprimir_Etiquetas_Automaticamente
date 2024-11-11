@@ -1,0 +1,16 @@
+
+# Archivos y carpetas de PyInstaller
+/build/
+/*.spec
+
+# Archivos de log
+*.log
+
+# Archivos de entorno de Python
+__pycache__/
+*.py[cod]
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
