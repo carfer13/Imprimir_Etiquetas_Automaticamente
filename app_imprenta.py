@@ -3,7 +3,7 @@ import sys
 import time
 import zipfile
 import shutil
-import threading  # Para usar hilos
+import threading
 from pathlib import Path
 import subprocess
 import configparser
@@ -11,6 +11,7 @@ from tkinter import filedialog, messagebox, scrolledtext
 import tkinter as tk
 from PIL import Image, ImageTk
 import logging
+from datetime import datetime
 
 # Configuración del logging para guardar los errores en un archivo de log
 logging.basicConfig(filename='impresion_etiquetas.log', level=logging.ERROR)
@@ -19,7 +20,7 @@ logging.basicConfig(filename='impresion_etiquetas.log', level=logging.ERROR)
 def obtener_ruta_absoluta(relative_path):
     """Obtener la ruta absoluta para PyInstaller."""
     try:
-        base_path = sys._MEIPASS  # Carpeta temporal donde PyInstaller guarda archivos empaquetados
+        base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
@@ -70,7 +71,6 @@ class Aplicacion:
 
     def crear_primera_ventana(self):
         try:
-            # Usar la función obtener_ruta_absoluta para obtener la ruta del logo
             ruta_logo = obtener_ruta_absoluta('logo_atmosfera_sport.jpg')
             self.logo = Image.open(ruta_logo)
             self.logo = self.logo.resize((400, 100))
@@ -80,19 +80,16 @@ class Aplicacion:
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo cargar el logo. Detalles: {e}")
 
-        # Selector de carpeta
         self.label_carpeta = tk.Label(self.root, text="Seleccionar la carpeta a monitorear:", font=("Arial", 12))
         self.label_carpeta.pack(pady=5)
         self.boton_carpeta = tk.Button(self.root, text="Seleccionar carpeta", command=self.seleccionar_carpeta)
         self.boton_carpeta.pack(pady=5)
 
-        # Campo para el nombre de la impresora
         self.label_impresora = tk.Label(self.root, text="Escriba el nombre de la impresora:", font=("Arial", 12))
         self.label_impresora.pack(pady=5)
         self.entry_impresora = tk.Entry(self.root, width=40)
         self.entry_impresora.pack(pady=5)
 
-        # Botón para confirmar y pasar a la segunda ventana
         self.boton_confirmar = tk.Button(self.root, text="Confirmar", command=self.abrir_segunda_ventana)
         self.boton_confirmar.pack(pady=10)
 
@@ -108,20 +105,17 @@ class Aplicacion:
         if not hasattr(self, 'carpeta_seleccionada') or not self.carpeta_seleccionada:
             messagebox.showwarning("Error", "Debe seleccionar una carpeta.")
             return
-        impresora = self.entry_impresora.get().strip()  # Eliminamos espacios en blanco
+        impresora = self.entry_impresora.get().strip()
         if not impresora:
             messagebox.showwarning("Error", "Debe ingresar el nombre de la impresora.")
             return
 
-        # Obtener la ruta de Adobe Acrobat Reader
         adobe_path = obtener_ruta_adobe()
         if not adobe_path:
             return
 
-        # Ocultar la primera ventana
         self.root.withdraw()
 
-        # Crear la segunda ventana para mostrar los logs
         self.ventana_logs = tk.Toplevel()
         self.ventana_logs.title("Atmósfera Sport - Estado de la impresión")
         self.ventana_logs.geometry("500x500")
@@ -135,15 +129,12 @@ class Aplicacion:
         self.log_text.pack(pady=10)
         self.ventana_logs.protocol("WM_DELETE_WINDOW", self.cerrar_aplicacion)
 
-        # Mostrar que la aplicación ha iniciado correctamente
         self.mostrar_logs("Aplicación iniciada...\n")
         self.mostrar_logs(f"Usando Adobe Acrobat Reader en: {adobe_path}")
 
-        # Iniciar el monitoreo de la carpeta en un hilo separado
         threading.Thread(target=self.iniciar_monitoreo, args=(self.carpeta_seleccionada, impresora, adobe_path), daemon=True).start()
 
     def mostrar_logs(self, texto):
-        """Función para mostrar los logs en la ventana de salida."""
         self.root.after(0, lambda: self.log_text.insert(tk.END, texto + "\n"))
         self.root.after(0, lambda: self.log_text.see(tk.END))
 
@@ -171,11 +162,10 @@ class Aplicacion:
 
     def manejar_zip(self, ruta_zip, impresora, adobe_path):
         carpeta_temporal = Path('temp_etiquetas')
+        carpeta_impresos = carpeta_temporal / 'impresos'
 
-        if carpeta_temporal.exists():
-            shutil.rmtree(carpeta_temporal)
-
-        os.makedirs(carpeta_temporal, exist_ok=True)
+        carpeta_temporal.mkdir(exist_ok=True)
+        carpeta_impresos.mkdir(exist_ok=True)
 
         with zipfile.ZipFile(ruta_zip, 'r') as zip_ref:
             zip_ref.extractall(carpeta_temporal)
@@ -190,8 +180,11 @@ class Aplicacion:
             comando_impresion = f'"{adobe_path}" /t "{pdf_file}" "{impresora}"'
             subprocess.run(comando_impresion, shell=True)
 
-        shutil.rmtree(carpeta_temporal)
-        self.mostrar_logs(f"Carpeta temporal eliminada.")
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            nuevo_nombre = f"{pdf_file.stem}_{timestamp}.pdf"
+            destino = carpeta_impresos / nuevo_nombre
+            pdf_file.rename(destino)
+            self.mostrar_logs(f"Archivo movido a 'impresos' como: {destino}")
 
     def cerrar_aplicacion(self):
         self.ventana_logs.destroy()
